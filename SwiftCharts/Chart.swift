@@ -103,6 +103,8 @@ public class Chart {
         self.init(view: ChartBaseView(frame: frame), innerFrame: innerFrame, settings: settings, layers: layers)
     }
 
+    private var anchorTranslation = CGPointZero
+    
     /**
      Create a new Chart with a view and layers.
 
@@ -129,10 +131,11 @@ public class Chart {
         containerView.addSubview(drawersContentView)
         
         let contentView = ChartContentView(frame: containerView.bounds)
-        contentView.backgroundColor = UIColor.clearColor()
+        contentView.backgroundColor = UIColor.blueColor().colorWithAlphaComponent(0.3)
         containerView.addSubview(contentView)
         
-        containerView.clipsToBounds = true
+        
+        containerView.clipsToBounds = false
         view.addSubview(containerView)
 
         self.contentView = contentView
@@ -143,6 +146,10 @@ public class Chart {
         
         contentView.chart = self
         drawersContentView.chart = self
+
+        
+        updateContentAnchor()
+        
         
         if let settings = settings {
             self.view.configure(settings)
@@ -153,9 +160,84 @@ public class Chart {
         for layer in self.layers {
             layer.chartInitialized(chart: self)
         }
-        
+
         self.view.setNeedsDisplay()
+        
+
     }
+    
+    
+    func updateContentAnchor() {
+        
+        func changeAnchor(view: UIView, newAnchor: CGPoint) {
+            //let anchorOffsetY = (baseView.bounds.height * (newAnchorY - oldAnchorY.y))
+            //baseView.layer.anchorPoint = CGPointMake(baseView.layer.anchorPoint.x, newAnchorY)
+            
+            let oldAnchor = view.layer.anchorPoint
+            let offsetAnchor = CGPoint(x: newAnchor.x - view.layer.anchorPoint.x, y: newAnchor.y - view.layer.anchorPoint.y)
+            let offset = CGPoint(x: view.frame.width * offsetAnchor.x, y: view.frame.height * offsetAnchor.y)
+//            let offset = CGPoint(x: view.frame.width * view.transform.a * offsetAnchor.x, y: view.frame.height * view.transform.d * offsetAnchor.y)
+            view.layer.anchorPoint = newAnchor
+            
+            view.transform = CGAffineTransformTranslate(view.transform, offset.x, offset.y) // TODO remove this?
+            
+            anchorTranslation = CGPointMake(anchorTranslation.x + offset.x, anchorTranslation.y + offset.y)
+//            anchorTranslation = CGPointMake(view.frame.width * (newAnchor.x - 0.5), view.frame.height * (newAnchor.y - 0.5))
+            
+            
+            print("newAnchor: \(newAnchor), offsetAnchor: \(offsetAnchor), offset: \(offset), content view transform is now: \(contentView.transform), contentView frame: \(contentView.frame)-- oldAnchor: \(oldAnchor.y), new anchor - old anchor: \(newAnchor.y - oldAnchor.y)")
+        }
+        
+//        let p = contentView.convertPoint(CGPointZero, fromView: view)
+        
+//        let p1x = containerView.frame.origin.x + contentView.frame.origin.x
+//        let p1y = containerView.frame.origin.y + contentView.frame.origin.y
+//        let p = CGPointMake(p1x, p1y)
+        
+        
+        let origin = CGPointZero
+        let p1x = origin.x - containerView.frame.origin.x
+            - contentView.frame.origin.x
+        let p1y = origin.y - containerView.frame.origin.y
+            - contentView.frame.origin.y
+        let originInContentViewCoords = CGPointMake(p1x, p1y)
+//        let originInContentViewCoords = CGPointMake(p1x / contentView.transform.a, p1y / contentView.transform.d)
+        
+//        print("update trans, content")
+        
+//        let originInContentViewCoords = CGPointMake(p.x * contentView.transform.a, p.y * contentView.transform.d)
+//        let newAnchor = CGPoint(x: originInContentViewCoords.x / containerView.frame.width, y: originInContentViewCoords.y / containerView.frame.height)
+//        let newAnchor = CGPoint(x: originInContentViewCoords.x / (contentView.frame.width / contentView.transform.a), y: originInContentViewCoords.y / (contentView.frame.height / contentView.transform.d))
+        var newAnchor = CGPoint(x: originInContentViewCoords.x / contentView.frame.width, y: originInContentViewCoords.y / contentView.frame.height)
+//        print("originInContentViewCoords: \(originInContentViewCoords), content view origin: \(contentView.frame.origin), container view origin: \(containerView.frame.origin), new anchor: \(newAnchor), contentView.transform: \(contentView.transform)")
+
+//        let newAnchor = CGPoint(x: -containerView.frame.minX / contentView.frame.width, y: -containerView.frame.minY / contentView.frame.height)
+//        let newAnchor = CGPoint(x: -containerView.frame.minX / contentView.frame.width / contentView.transform.a, y: -containerView.frame.minY / contentView.frame.height / contentView.transform.d)
+        
+        
+
+//        print("UPDATE ANCHOR content view anchor: \(newAnchor), counter: \(debugAnchorUpdateCount), originInContentViewCoords: \(originInContentViewCoords), contentView frame: \(contentView.frame), container frame: \(containerView.frame), transform: \(transform.transform), contentview transoform: \(contentView.transform)")
+        if debugAnchorUpdateCount == 3 {
+            // smaller x: -> right, smaller y: ->
+//            newAnchor = CGPointMake(-1.1, -0.04)
+//            print("!!! 3 changed to: \(newAnchor)")
+        }
+        
+        changeAnchor(contentView, newAnchor: newAnchor)
+     
+
+        
+//        let anchorPoint = CGPointMake(containerView.frame.width * newAnchor.x, containerView.frame.height * newAnchor.y)
+//        let b = view.convertPoint(anchorPoint, fromView: containerView)
+//        
+//        
+//        print("changeAnchor, new anchor: \(newAnchor), anchorPoint: \(anchorPoint), in base view coords: \(b)")
+        
+        debugAnchorUpdateCount += 1
+        
+    }
+    
+    var debugAnchorUpdateCount = 0
     
     public required init(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
@@ -206,9 +288,11 @@ public class Chart {
         for layer in layers {
             layer.handleAxisInnerFrameChange(xLow, yLow: yLow, xHigh: xHigh, yHigh: yHigh)
         }
-        
+
         handleAxisInnerFrameChange(xLow, yLow: yLow, xHigh: xHigh, yHigh: yHigh)
     }
+    
+    var frameChangeScalingFactor: CGPoint?
     
     private func handleAxisInnerFrameChange(xLow: ChartAxisLayerWithFrameDelta?, yLow: ChartAxisLayerWithFrameDelta?, xHigh: ChartAxisLayerWithFrameDelta?, yHigh: ChartAxisLayerWithFrameDelta?) {
         let previousContentFrame = contentView.frame
@@ -218,16 +302,37 @@ public class Chart {
         // Change dimensions of content view by total delta of container view
         contentView.frame = CGRectMake(contentView.frame.origin.x, contentView.frame.origin.y, contentView.frame.width - (yLow.deltaDefault0 + yHigh.deltaDefault0), contentView.frame.height - (xLow.deltaDefault0 + xHigh.deltaDefault0))
 
+        
+        
+        
         // Scale contents of content view
         let widthChangeFactor = contentView.frame.width / previousContentFrame.width
         let heightChangeFactor = contentView.frame.height / previousContentFrame.height
+        frameChangeScalingFactor = CGPointMake((frameChangeScalingFactor?.x ?? 1) * widthChangeFactor, (frameChangeScalingFactor?.y ?? 1) * heightChangeFactor)
+        
         let frameBeforeScale = contentView.frame
-        contentView.transform = CGAffineTransformMakeScale(contentView.transform.a * widthChangeFactor, contentView.transform.d * heightChangeFactor)
+//        print("start init")
+        applyTransformToContentView(transform)
+//        print("end init")
+//        contentView.transform = CGAffineTransformMakeScale(contentView.transform.a * widthChangeFactor, contentView.transform.d * heightChangeFactor)
         contentView.frame = frameBeforeScale
+        
+        
+        
+        
+        updateContentAnchor()
+        
     }
 
     public func zoom(deltaX deltaX: CGFloat, deltaY: CGFloat, centerX: CGFloat, centerY: CGFloat) {
-        transform.zoom(deltaX: deltaX, deltaY: deltaY, centerX: centerX, centerY: centerY)
+        
+        
+        let centerTest = CGPointApplyAffineTransform(CGPointMake(centerX, centerY), CGAffineTransformInvert(transform.transform))
+        
+        transform.zoom(deltaX: deltaX, deltaY: deltaY, centerX: centerTest.x, centerY: centerTest.y)
+        
+        print("ZOOM content view, current anchor: \(contentView.layer.anchorPoint), contentView frame: \(contentView.frame), container frame: \(containerView.frame), transform: \(transform.transform)")
+        
         updateTransforms()
     }
     
@@ -241,17 +346,59 @@ public class Chart {
         updateTransforms()
     }
     
+    
+    var debugLastAnchor: CGPoint?
+    
     private func updateTransforms() {
+        
+      
         applyTransformToContentView(transform)
         for layer in layers {
             layer.onTransformUpdate(transform)
         }
+        
+        let origin = CGPointZero
+        let p1x = origin.x - containerView.frame.origin.x - contentView.frame.origin.x
+        let p1y = origin.y - containerView.frame.origin.y - contentView.frame.origin.y
+//        let p = CGPointMake(p1x, p1y)
+
+        
+        
+//        print("after update trans, contentview frame: \(contentView.frame), container frame: \(containerView.frame), zero: \(p)")
+        
     }
     
+    
+    
+    
     private func applyTransformToContentView(transform: ChartTransform) {
-        contentView.transform.a = transform.transform.a
-        contentView.transform.d = transform.transform.d
-        // TODO
+//        contentView.transform.a = transform.transform.a
+//        contentView.transform.d = transform.transform.d
+//        print("transform: \(transform.transform), transform before zoom: \(contentView.transform)")
+//        contentView.transform = CGAffineTransformConcat(transform.transform, contentView.transform)
+        
+//        print("content transform before apply: \(contentView.transform), global transform: \(transform.transform)")
+
+//        print("apply - before: framescalingfactor: \(frameChangeScalingFactor), content transform: \(contentView.transform), transform: \(transform)")
+        
+        let m = CGAffineTransformMake(1, 0, 0, 1, anchorTranslation.x, anchorTranslation.y)
+//        print("m: \(m)")
+        contentView.transform = CGAffineTransformConcat(transform.transform, m)
+        contentView.transform = CGAffineTransformScale(contentView.transform, frameChangeScalingFactor?.x ?? 1, frameChangeScalingFactor?.y ?? 1)
+        
+        
+//        print("apply - after: framescalingfactor: \(frameChangeScalingFactor), content transform: \(contentView.transform), transform: \(transform)")
+        
+//        contentView.transform = transform.transform
+//        contentView.transform = CGAffineTransformTranslate(contentView.transform, anchorTranslation.x / transform.transform.a, anchorTranslation.y / transform.transform.d)
+        
+        
+//        contentView.transform = transform.concatenating(contentView.transform)
+        
+//        print("transform after zoom: \(contentView.transform)")
+        
+        print("content transform after apply: \(contentView.transform), global transform: \(transform.transform)")
+
     }
 
     /**
@@ -342,7 +489,7 @@ public class ChartView: UIView, UIGestureRecognizerDelegate {
         self.backgroundColor = UIColor.clearColor()
     }
     
-//    private var currentPinchCenter: CGPoint! // testing fixed pinch center (during gesture)
+    private var currentPinchCenter: CGPoint? // testing fixed pinch center (during gesture)
 
     
     @objc func onPinch(sender: UIPinchGestureRecognizer) {
@@ -352,14 +499,14 @@ public class ChartView: UIView, UIGestureRecognizerDelegate {
         
         
         
-//        switch sender.state {
-//        case .Began:
-//            let center = sender.locationInView(self)
-//            currentPinchCenter = center
-//        default: break
-//        }
+        switch sender.state {
+        case .Began:
+            let center = sender.locationInView(self)
+            currentPinchCenter = center
+        default: break
+        }
         
-        let center = sender.locationInView(self)
+        let center = currentPinchCenter ?? sender.locationInView(self)
         
         let x = abs(sender.locationInView(self).x - sender.locationOfTouch(1, inView: self).x)
         let y = abs(sender.locationInView(self).y - sender.locationOfTouch(1, inView: self).y)
@@ -369,8 +516,13 @@ public class ChartView: UIView, UIGestureRecognizerDelegate {
         let minScale = (absMin * (sender.scale - 1) / absMax) + 1
         let (deltaX, deltaY) = x > y ? (sender.scale, minScale) : (minScale, sender.scale)
         
-//        chart?.zoom(deltaX: deltaX, deltaY: deltaY, centerX: center.x, centerY: center.y, isGesture: true)
-        chart.incrementZoom(x: (deltaX - 1) * chart.transform.scaleX, y: (deltaY - 1) * chart.transform.scaleY, centerX: center.x, centerY: center.y)
+        let centerInTrans = CGPointApplyAffineTransform(center, chart.transform.transform)
+//        let c = chart.transform.transform
+        
+//        print("center: \(center), in trans: \(centerInTrans), transform: \(chart.transform.transform)")
+        
+        chart.zoom(deltaX: deltaX, deltaY: deltaY, centerX: center.x, centerY: center.y)
+//        chart.incrementZoom(x: (deltaX - 1) * chart.transform.scaleX, y: (deltaY - 1) * chart.transform.scaleY, centerX: centerInTrans.x, centerY: centerInTrans.y)
 
         sender.scale = 1.0
     }
@@ -394,25 +546,25 @@ public class ChartView: UIView, UIGestureRecognizerDelegate {
             chart?.pan(deltaX: deltaX, deltaY: deltaY, isGesture: true, isDeceleration: false)
             
         case .Ended:
-            break
-//            guard let view = sender.view else {print("Recogniser has no view"); return}
-//            
-//            let velocityX = sender.velocityInView(sender.view).x
-//            let velocityY = sender.velocityInView(sender.view).y
-//            
-//            func next(index: Int, velocityX: CGFloat, velocityY: CGFloat) {
-//                dispatch_async(dispatch_get_main_queue()) {
-//                    
-//                    self.chart?.pan(deltaX: velocityX, deltaY: velocityY, isGesture: true, isDeceleration: true)
-//                    
-//                    if abs(velocityX) > 0.1 || abs(velocityY) > 0.1 {
-//                        let friction: CGFloat = 0.9
-//                        next(index + 1, velocityX: velocityX * friction, velocityY: velocityY * friction)
-//                    }
-//                }
-//            }
-//            let initFriction: CGFloat = 50
-//            next(0, velocityX: velocityX / initFriction, velocityY: velocityY / initFriction)
+//            break
+            guard let view = sender.view else {print("Recogniser has no view"); return}
+            
+            let velocityX = sender.velocityInView(sender.view).x
+            let velocityY = sender.velocityInView(sender.view).y
+            
+            func next(index: Int, velocityX: CGFloat, velocityY: CGFloat) {
+                dispatch_async(dispatch_get_main_queue()) {
+                    
+                    self.chart?.pan(deltaX: velocityX, deltaY: velocityY, isGesture: true, isDeceleration: true)
+                    
+                    if abs(velocityX) > 0.1 || abs(velocityY) > 0.1 {
+                        let friction: CGFloat = 0.9
+                        next(index + 1, velocityX: velocityX * friction, velocityY: velocityY * friction)
+                    }
+                }
+            }
+            let initFriction: CGFloat = 50
+            next(0, velocityX: velocityX / initFriction, velocityY: velocityY / initFriction)
             
         case .Cancelled: break;
         case .Failed: break;

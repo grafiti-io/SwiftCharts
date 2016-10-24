@@ -88,7 +88,7 @@ class MasterViewController: UITableViewController {
             if let indexPath = self.tableView.indexPathForSelectedRow {
                 showExample(indexPath.row)
             } else {
-                showExample(7)
+                showExample(0)
             }
         }
     }

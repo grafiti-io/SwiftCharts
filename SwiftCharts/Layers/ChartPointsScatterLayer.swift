@@ -22,10 +22,53 @@ public class ChartPointsScatterLayer<T: ChartPoint>: ChartPointsLayer<T> {
         super.init(xAxis: xAxis, yAxis: yAxis, chartPoints: chartPoints, displayDelay: displayDelay)
     }
     
+    override public func chartViewDrawing(context context: CGContextRef, chart: Chart) {
+        
+        func drawLine(y: CGFloat) {
+            let originalLineStart = CGPoint(x: 0, y: y)
+            let originalLineEnd = CGPoint(x: 600, y: y)
+            
+            let transformedLineStart = CGPointApplyAffineTransform(originalLineStart, chart.transform.transform)
+            let transformedLineEnd = CGPointApplyAffineTransform(originalLineEnd, chart.transform.transform)
+            //            let transformedLineStart = originalLineStart
+            //            let transformedLineEnd = originalLineEnd
+            
+            print("calling draw with start: \(transformedLineStart), end: \(transformedLineEnd), transform: \(chart.transform.transform)")
+            
+            CGContextMoveToPoint(context, transformedLineStart.x, transformedLineStart.y)
+            //            context.move(to: CGPoint(x: transformedLineStart.x, y: transformedLineStart.y))
+            CGContextAddLineToPoint(context, transformedLineEnd.x, transformedLineEnd.y)
+            //            context.addLine(to: CGPoint(x: transformedLineEnd.x, y: transformedLineEnd.y))
+            CGContextStrokePath(context)
+            
+        }
+        
+        let lineWidth: CGFloat = 2
+        CGContextSetLineWidth(context, lineWidth)
+        CGContextSetStrokeColorWithColor(context, UIColor.blackColor().CGColor)
+        
+        drawLine(287.575)
+        
+    }
+    
+    
     override public func chartContentViewDrawing(context context: CGContextRef, chart: Chart) {
     }
     
     override public func chartDrawersContentViewDrawing(context context: CGContextRef, chart: Chart, view: UIView) {
+        
+        
+  
+        
+//        CGContextSetStrokeColor(context, UIColor.redColor().CGColor)
+//        
+//        drawLine(y: globalLineP2.y)
+
+        
+        
+        
+        
+        
         if !optimized {
             for chartPointModel in chartPointsModels {
                 drawChartPointModel(context: context, chartPointModel: chartPointModel, view: view)
@@ -82,8 +125,8 @@ public class ChartPointsScatterLayer<T: ChartPoint>: ChartPointsLayer<T> {
     func generateCGLayer(context context: CGContextRef, view: UIView, contentScale: CGFloat) -> CGLayer? {
         let scaledBounds = CGRectMake(0, 0, itemSize.width * contentScale, itemSize.height * contentScale)
         let layer = CGLayerCreateWithContext(context, scaledBounds.size, nil)
-        let myLayerContext1 = CGLayerGetContext(layer)
-        CGContextScaleCTM(myLayerContext1, contentScale, contentScale)
+        let myLayerContext1 = CGLayerGetContext(layer!)
+        CGContextScaleCTM(myLayerContext1!, contentScale, contentScale)
         return layer
     }
     
@@ -100,11 +143,11 @@ public class ChartPointsScatterTrianglesLayer<T: ChartPoint>: ChartPointsScatter
     
     override func generateCGLayer(context context: CGContextRef, view: UIView, contentScale: CGFloat) -> CGLayer? {
         let layer = super.generateCGLayer(context: context, view: view, contentScale: contentScale)
-        let layerContext = CGLayerGetContext(layer)
+        let layerContext = CGLayerGetContext(layer!)
         
-        CGContextSetFillColorWithColor(layerContext, itemFillColor.CGColor)
-        CGContextAddLines(layerContext, trianglePointsCG, 4)
-        CGContextFillPath(layerContext)
+        CGContextSetFillColorWithColor(layerContext!, itemFillColor.CGColor)
+        CGContextAddLines(layerContext!, trianglePointsCG, 4)
+        CGContextFillPath(layerContext!)
         
         return layer
     }
@@ -150,11 +193,11 @@ public class ChartPointsScatterSquaresLayer<T: ChartPoint>: ChartPointsScatterLa
     
     override func generateCGLayer(context context: CGContextRef, view: UIView, contentScale: CGFloat) -> CGLayer? {
         let layer = super.generateCGLayer(context: context, view: view, contentScale: contentScale)
-        let layerContext = CGLayerGetContext(layer)
+        let layerContext = CGLayerGetContext(layer!)
 
-        CGContextSetFillColorWithColor(layerContext, itemFillColor.CGColor)
-        CGContextFillRect(layerContext, CGRectMake(0, 0, itemSize.width, itemSize.height))
-        CGContextFillPath(layerContext)
+        CGContextSetFillColorWithColor(layerContext!, itemFillColor.CGColor)
+        CGContextFillRect(layerContext!, CGRectMake(0, 0, itemSize.width, itemSize.height))
+        CGContextFillPath(layerContext!)
         
         return layer
     }
@@ -178,11 +221,11 @@ public class ChartPointsScatterCirclesLayer<T: ChartPoint>: ChartPointsScatterLa
     
     override func generateCGLayer(context context: CGContextRef, view: UIView, contentScale: CGFloat) -> CGLayer? {
         let layer = super.generateCGLayer(context: context, view: view, contentScale: contentScale)
-        let layerContext = CGLayerGetContext(layer)
+        let layerContext = CGLayerGetContext(layer!)
         
-        CGContextSetFillColorWithColor(layerContext, itemFillColor.CGColor)
-        CGContextFillEllipseInRect(layerContext, CGRectMake(0, 0, itemSize.width, itemSize.height))
-        CGContextFillPath(layerContext)
+        CGContextSetFillColorWithColor(layerContext!, itemFillColor.CGColor)
+        CGContextFillEllipseInRect(layerContext!, CGRectMake(0, 0, itemSize.width, itemSize.height))
+        CGContextFillPath(layerContext!)
         
         return layer
     }
@@ -222,15 +265,15 @@ public class ChartPointsScatterCrossesLayer<T: ChartPoint>: ChartPointsScatterLa
     
     override func generateCGLayer(context context: CGContextRef, view: UIView, contentScale: CGFloat) -> CGLayer? {
         let layer = super.generateCGLayer(context: context, view: view, contentScale: contentScale)
-        let layerContext = CGLayerGetContext(layer)
+        let layerContext = CGLayerGetContext(layer!)
 
         CGContextSetStrokeColorWithColor(context, itemFillColor.CGColor)
         CGContextSetLineWidth(context, strokeWidth)
         
-        CGContextAddLines(layerContext, line1PointsCG, 2)
-        CGContextAddLines(layerContext, line2PointsCG, 2)
+        CGContextAddLines(layerContext!, line1PointsCG, 2)
+        CGContextAddLines(layerContext!, line2PointsCG, 2)
         
-        CGContextStrokePath(layerContext)
+        CGContextStrokePath(layerContext!)
         
         return layer
     }

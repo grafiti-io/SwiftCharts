@@ -28,8 +28,8 @@ public class ChartPointViewBarStacked: ChartPointViewBar {
         let context = UIGraphicsGetCurrentContext()
         
         for stackFrame in self.stackFrames {
-            CGContextSetFillColorWithColor(context, stackFrame.color.CGColor)
-            CGContextFillRect(context, stackFrame.rect)
+            CGContextSetFillColorWithColor(context!, stackFrame.color.CGColor)
+            CGContextFillRect(context!, stackFrame.rect)
         }
     }
 }

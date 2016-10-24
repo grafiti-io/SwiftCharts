@@ -34,8 +34,8 @@ public class InfoBubble: UIView {
     
     override public func drawRect(rect: CGRect) {
         let context = UIGraphicsGetCurrentContext()
-        CGContextSetFillColorWithColor(context, self.bgColor.CGColor)
-        CGContextSetStrokeColorWithColor(context, self.bgColor.CGColor)
+        CGContextSetFillColorWithColor(context!, self.bgColor.CGColor)
+        CGContextSetStrokeColorWithColor(context!, self.bgColor.CGColor)
         let rrect = CGRectInset(rect, 0, 20)
         
         let minx = CGRectGetMinX(rrect), maxx = CGRectGetMaxX(rrect)
@@ -54,7 +54,7 @@ public class InfoBubble: UIView {
         
         CGPathCloseSubpath(outlinePath)
 
-        CGContextAddPath(context, outlinePath)
-        CGContextFillPath(context)
+        CGContextAddPath(context!, outlinePath)
+        CGContextFillPath(context!)
     }
 }

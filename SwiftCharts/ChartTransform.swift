@@ -71,10 +71,14 @@ public class ChartTransform {
     }
     
     func setZoom(x x: CGFloat, y: CGFloat, centerX: CGFloat, centerY: CGFloat) {
+//        print("trasnform before zoom: \(transform), scale: x:\(x),y:\(y)")
         transform = CGAffineTransformTranslate(transform, centerX, centerY)
         transform.a = max(x, 1)
         transform.d = max(y, 1)
         transform = CGAffineTransformTranslate(transform, -centerX, -centerY)
+        
+        // re-set the current translation, to validate boundaries
+        setTrans(x: transform.tx, y: transform.ty)
     }
 
     func setTrans(x x: CGFloat, y: CGFloat) {
