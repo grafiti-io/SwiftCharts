@@ -22,16 +22,19 @@ class HelloWorld: UIViewController {
         let labelSettings = ChartLabelSettings(font: ExamplesDefaults.labelFont)
         
         let generator = ChartAxisGeneratorMultiplier(2)
-        let labelsGenerator = ChartAxisLabelsGeneratorFunc {scalar in
-//            return ChartAxisLabel(text: "", settings: labelSettings)
-//            let str = scalar >= 10 ? "very long number!!!!" : "\(scalar)"
-//            return ChartAxisLabel(text: "very long number!!!!!!!!!!!!!!!!!!!", settings: labelSettings)
-            return ChartAxisLabel(text: scalar >= 10 ? "very long number!!!!!!!!!!!!!!!!!!!" : "\(scalar)", settings: labelSettings)
+        let labelsGenerator = ChartAxisLabelsGeneratorFunc {(scalar: Double) -> ChartAxisLabel in
+//            return ChartAxisLabel(text: "short number!!!", settings: labelSettings)
+
+            if scalar >= 10 {
+                return ChartAxisLabel(text: "very long number!!!!!!!!!!!!!!!!!!!", settings: labelSettings)
+            } else {
+                return ChartAxisLabel(text: "short number!!!", settings: labelSettings)
+            }
         }
         
         let xLabelsGenerator = ChartAxisLabelsGeneratorFunc {scalar in
-            //            return ChartAxisLabel(text: "", settings: labelSettings)
-            return ChartAxisLabel(text: "", settings: labelSettings)
+//                        return ChartAxisLabel(text: "", settings: labelSettings)
+            return ChartAxisLabel(text: "\(scalar)", settings: labelSettings)
         }
         
         let xGenerator = ChartAxisGeneratorMultiplier(2)
@@ -60,8 +63,16 @@ class HelloWorld: UIViewController {
             
             view.backgroundColor = chartPointModel.index == 0 ? UIColor.greenColor() : chartPointModel.index == 3 ? UIColor.redColor() : UIColor.cyanColor()
             let dot = UIView(frame: CGRectMake(view.bounds.midX - 1, view.bounds.midY - 1, 2, 2))
-            dot.backgroundColor = UIColor.blueColor()
+            dot.backgroundColor = UIColor.blue
+            
+//            let dot = UILabel()
+//            dot.text = chartPointModel.chartPoint.description
+//            dot.textColor = UIColor.blackColor()
+//            dot.sizeToFit()
+
             view.addSubview(dot)
+            
+            
             return view
         }
         
@@ -92,13 +103,15 @@ class HelloWorld: UIViewController {
         line2.backgroundColor = UIColor.redColor()
         view.addSubview(line2)
         
-        
         let line3 = UIView(frame: CGRectMake(60, 0, 1, 1000))
         line3.backgroundColor = UIColor.redColor()
         view.addSubview(line3)
         
-//        chart.zoom(deltaX: 0, deltaY: 2, centerX: 0, centerY: chart.view.frame.height)
-//
+        chart.zoom(deltaX: 0, deltaY: 2, centerX: 0, centerY: chart.view.frame.height)
+        chart.zoom(deltaX: 0, deltaY: 2, centerX: 0, centerY: chart.view.frame.height)
+
+//        chart.zoom(deltaX: 0, deltaY: 4, centerX: 0, centerY: chart.view.frame.height)
+
 //        let x = xAxisLayer.axis.screenLocForScalar(2)
 //        let y = yAxisLayer.axis.screenLocForScalar(2)
 //        
@@ -122,5 +135,7 @@ class HelloWorld: UIViewController {
 //        chart.zoom(deltaX: dx, deltaY: dy, centerX: x, centerY: y)
 //        chart.zoom(deltaX: dx, deltaY: dy, centerX: x, centerY: y)
 //        chart.zoom(deltaX: dx, deltaY: dy, centerX: x, centerY: y)
+        
+//        print("view frame: \(view.frame)")
     }
 }

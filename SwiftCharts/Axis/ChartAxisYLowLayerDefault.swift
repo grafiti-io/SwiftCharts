@@ -70,7 +70,9 @@ class ChartAxisYLowLayerDefault: ChartAxisYLayerDefault {
         guard let chart = self.chart else {return}
         super.updateInternal()
         if self.lastFrame.width != self.frame.width {
-            chart.notifyAxisInnerFrameChange(yLow: ChartAxisLayerWithFrameDelta(layer: self, delta: self.frame.width - self.lastFrame.width))
+            let delta = self.frame.width - self.lastFrame.width
+            print("y low delta: \(delta)")
+            chart.notifyAxisInnerFrameChange(yLow: ChartAxisLayerWithFrameDelta(layer: self, delta: delta))
         }
     }
     
